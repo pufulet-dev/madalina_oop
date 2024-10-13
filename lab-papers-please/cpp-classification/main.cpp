@@ -131,8 +131,16 @@ public:
             writer.Int(entity.id);
             writer.Key("isHumanoid");
             writer.Bool(entity.isHumanoid);
+            writer.Key("planet");
+            writer.String(entity.planet.c_str());
             writer.Key("age");
             writer.Int(entity.age);
+            writer.Key("traits");
+            writer.StartArray();
+            for (const auto& trait : entity.traits) {
+                writer.String(trait.c_str());
+            }
+            writer.EndArray();
             writer.EndObject();
         }
         writer.EndArray();

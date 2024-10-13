@@ -1,1 +1,1 @@
-{"name":"marvel.json","individuals":[{"id":2,"isHumanoid":true,"age":2034},{"id":9,"isHumanoid":true,"age":0}]}
+{"name":"marvel.json","individuals":[{"id":2,"isHumanoid":true,"planet":"Asgard","age":2034,"traits":["BLONDE","TALL"]},{"id":9,"isHumanoid":true,"planet":"Asgard","age":0,"traits":["BLONDE","TALL"]}]}
