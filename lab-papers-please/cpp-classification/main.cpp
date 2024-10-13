@@ -3,33 +3,41 @@
 #include <string>
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
+#include <vector>
 
 using namespace std;
 
+class Entity {
+public:
+    int id;
+    bool isHumanoid;
+    string planet;
+    int age;
+    vector<string> traits;
+
+    Entity(int id, bool isHumanoid, const string& planet, int age, const vector<string>& traits) 
+        : id(id), isHumanoid(isHumanoid), planet(planet), age(age), traits(traits) {}
+};
+
 class JsonFileReader {
     string filename;
+    vector<Entity> entities;
 
-    void printJsonObject(const rapidjson::Value& obj) {
-        cout << "Object " << obj["id"].GetInt() << ":\n";
-        cout << "  Is Humanoid: " << (obj.HasMember("isHumanoid") ? (obj["isHumanoid"].GetBool() ? "Yes" : "No") : "N/A") << "\n";
-        cout << "  Planet: " << (obj.HasMember("planet") ? obj["planet"].GetString() : "N/A") << "\n";
-        cout << "  Age: " << (obj.HasMember("age") ? to_string(obj["age"].GetInt()) : "N/A") << "\n";
-
-        if (obj.HasMember("traits") && obj["traits"].IsArray()) {
-            cout << "  Traits: ";
-            for (rapidjson::SizeType j = 0; j < obj["traits"].Size(); j++) {
-                cout << obj["traits"][j].GetString();
-                if (j < obj["traits"].Size() - 1) cout << ", ";
-            }
-            cout << "\n";
-        }
-        cout << endl;
+    void printEntity(const Entity& entity) {
+        cout << "Entity ID: " << entity.id << "\n";
+        cout << "Is" << (entity.isHumanoid ? " " : " NOT ") << "a humanoid" << "\n";
+        cout << "Planet: " << entity.planet << "\n";
+        cout << "Age: " << entity.age << "\n";
+        cout << "Traits: ";
+        for (int i = 0; i < entity.traits.size(); i++) cout << entity.traits[i] << " ";
+        entity.traits.size() ? cout << "\n" : cout << "N/A";
+        cout << "________________________\n";
     }
 
 public:
     JsonFileReader(const string& filename) : filename(filename) {}
 
-    void readAndPrint() {
+    void readAndMap() {
         ifstream ifs(filename);
         if (!ifs) {
             cerr << "Error opening file: " << filename << endl;
@@ -37,7 +45,6 @@ public:
         }
 
         string jsonContent((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-
         rapidjson::Document document;
         if (document.Parse(jsonContent.c_str()).HasParseError()) {
             cerr << "JSON Parse Error: " << rapidjson::GetParseError_En(document.GetParseError()) << endl;
@@ -46,17 +53,38 @@ public:
 
         if (document.HasMember("input") && document["input"].IsArray()) {
             const rapidjson::Value& inputArray = document["input"];
-            cout << "\nParsed JSON Objects:\n";
             for (rapidjson::SizeType i = 0; i < inputArray.Size(); i++) {
                 const rapidjson::Value& obj = inputArray[i];
-                printJsonObject(obj);
+                int id = obj["id"].GetInt();
+                bool isHumanoid = obj.HasMember("isHumanoid") ? obj["isHumanoid"].GetBool() : false;
+                string planet = obj.HasMember("planet") ? obj["planet"].GetString() : "N/A";
+                int age = obj.HasMember("age") ? obj["age"].GetInt() : 0;
+                vector<string> traits;
+
+                if (obj.HasMember("traits") && obj["traits"].IsArray()) {
+                    for (rapidjson::SizeType j = 0; j < obj["traits"].Size(); j++) {
+                        traits.push_back(obj["traits"][j].GetString());
+                    }
+                }
+
+                entities.emplace_back(id, isHumanoid, planet, age, traits);
             }
+        }
+    }
+
+    void printFilteredEntities() {
+        cout << "\nFiltered Entity IDs:\n";
+        for (const auto& entity : entities) {
+            printEntity(entity);
         }
     }
 };
 
 int main() {
     JsonFileReader reader("../input.json");
-    reader.readAndPrint();
+    reader.readAndMap();
+    
+    reader.printFilteredEntities();
+
     return 0;
 }
