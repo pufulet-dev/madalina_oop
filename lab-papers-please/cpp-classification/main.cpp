@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -17,6 +18,50 @@ public:
 
     Entity(int id, bool isHumanoid, const string& planet, int age, const vector<string>& traits) 
         : id(id), isHumanoid(isHumanoid), planet(planet), age(age), traits(traits) {}
+
+    void classify() {
+
+        // my debugging prints 
+        cout << "Classifying Entity ID: " << id << endl;
+        cout << "isHumanoid: " << isHumanoid << ", Planet: " << planet << ", Age: " << age << ", Traits: ";
+        for (const auto& trait : traits) {
+            cout << trait << " ";
+        }
+        cout << "\n";
+
+        // my classifications
+        if (!isHumanoid) {
+            if (planet == "Kashyyyk" && age <= 400 && hasTrait("HAIRY") && hasTrait("TALL")) {
+                cout << "Entity ID " << id << ": Wookie\n";
+            } else if (planet == "Endor" && age <= 60 && hasTrait("SHORT") && hasTrait("HAIRY")) {
+                cout << "Entity ID " << id << ": Ewok\n";
+            } else if (planet == "Asgard" && age <= 5000 && hasTrait("BLONDE") && hasTrait("TALL")) {
+                cout << "Entity ID " << id << ": Asgardian\n";
+            } else if (planet == "Betelgeuse" && age <= 100 && hasTrait("EXTRA_ARMS") && hasTrait("EXTRA_HEAD")) {
+                cout << "Entity ID " << id << ": Betelgeusian\n";
+            } else if (planet == "Vogsphere" && age <= 200 && hasTrait("GREEN") && hasTrait("BULKY")) {
+                cout << "Entity ID " << id << ": Vogon\n";
+            }
+        } else {
+            if (planet == "Earth") {
+                if (hasTrait("BLONDE") && hasTrait("POINTY_EARS")) {
+                    cout << "Entity ID " << id << ": Elf\n";
+                } else if (age <= 200 && hasTrait("SHORT") && hasTrait("BULKY")) {
+                    cout << "Entity ID " << id << ": Dwarf\n";
+                }
+            } else if (planet == "Asgard" && age <= 5000 && hasTrait("BLONDE") && hasTrait("TALL")) {
+                cout << "Entity ID " << id << ": Asgardian\n";
+            } else if (planet == "Betelgeuse" && age <= 100 && hasTrait("EXTRA_ARMS") && hasTrait("EXTRA_HEAD")) {
+                cout << "Entity ID " << id << ": Betelgeusian\n";
+            }
+        }
+    }
+
+
+private:
+    bool hasTrait(const string& trait) {
+        return find(traits.begin(), traits.end(), trait) != traits.end();
+    }
 };
 
 class JsonFileReader {
@@ -25,13 +70,6 @@ class JsonFileReader {
 
     void printEntity(const Entity& entity) {
         cout << "Entity ID: " << entity.id << "\n";
-        cout << "Is" << (entity.isHumanoid ? " " : " NOT ") << "a humanoid" << "\n";
-        cout << "Planet: " << entity.planet << "\n";
-        cout << "Age: " << entity.age << "\n";
-        cout << "Traits: ";
-        for (int i = 0; i < entity.traits.size(); i++) cout << entity.traits[i] << " ";
-        entity.traits.size() ? cout << "\n" : cout << "N/A";
-        cout << "________________________\n";
     }
 
 public:
@@ -72,10 +110,10 @@ public:
         }
     }
 
-    void printFilteredEntities() {
-        cout << "\nFiltered Entity IDs:\n";
-        for (const auto& entity : entities) {
-            printEntity(entity);
+    void classifyEntities() {
+        cout << "\nClassified Entities with IDs:\n";
+        for (auto& entity : entities) {
+            entity.classify();
         }
     }
 };
@@ -83,8 +121,8 @@ public:
 int main() {
     JsonFileReader reader("../input.json");
     reader.readAndMap();
-    
-    reader.printFilteredEntities();
+
+    reader.classifyEntities();
 
     return 0;
 }
