@@ -5,6 +5,8 @@
 #include "rapidjson/error/en.h"
 #include <vector>
 #include <algorithm>
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 using namespace std;
 
@@ -16,47 +18,33 @@ public:
     int age;
     vector<string> traits;
 
-    Entity(int id, bool isHumanoid, const string& planet, int age, const vector<string>& traits) 
+    Entity(int id, bool isHumanoid, const string& planet, int age, const vector<string>& traits)
         : id(id), isHumanoid(isHumanoid), planet(planet), age(age), traits(traits) {}
 
-    void classify() {
-
-        // my debugging prints 
-        cout << "Classifying Entity ID: " << id << endl;
-        cout << "isHumanoid: " << isHumanoid << ", Planet: " << planet << ", Age: " << age << ", Traits: ";
-        for (const auto& trait : traits) {
-            cout << trait << " ";
-        }
-        cout << "\n";
-
-        // my classifications
+    string classify() {
         if (!isHumanoid) {
             if (planet == "Kashyyyk" && age <= 400 && hasTrait("HAIRY") && hasTrait("TALL")) {
-                cout << "Entity ID " << id << ": Wookie\n";
+                return "Wookie";
             } else if (planet == "Endor" && age <= 60 && hasTrait("SHORT") && hasTrait("HAIRY")) {
-                cout << "Entity ID " << id << ": Ewok\n";
-            } else if (planet == "Asgard" && age <= 5000 && hasTrait("BLONDE") && hasTrait("TALL")) {
-                cout << "Entity ID " << id << ": Asgardian\n";
-            } else if (planet == "Betelgeuse" && age <= 100 && hasTrait("EXTRA_ARMS") && hasTrait("EXTRA_HEAD")) {
-                cout << "Entity ID " << id << ": Betelgeusian\n";
+                return "Ewok";
             } else if (planet == "Vogsphere" && age <= 200 && hasTrait("GREEN") && hasTrait("BULKY")) {
-                cout << "Entity ID " << id << ": Vogon\n";
+                return "Vogon";
             }
         } else {
             if (planet == "Earth") {
                 if (hasTrait("BLONDE") && hasTrait("POINTY_EARS")) {
-                    cout << "Entity ID " << id << ": Elf\n";
+                    return "Elf";
                 } else if (age <= 200 && hasTrait("SHORT") && hasTrait("BULKY")) {
-                    cout << "Entity ID " << id << ": Dwarf\n";
+                    return "Dwarf";
                 }
             } else if (planet == "Asgard" && age <= 5000 && hasTrait("BLONDE") && hasTrait("TALL")) {
-                cout << "Entity ID " << id << ": Asgardian\n";
+                return "Asgardian";
             } else if (planet == "Betelgeuse" && age <= 100 && hasTrait("EXTRA_ARMS") && hasTrait("EXTRA_HEAD")) {
-                cout << "Entity ID " << id << ": Betelgeusian\n";
+                return "Betelgeusian";
             }
         }
+        return "Unknown"; 
     }
-
 
 private:
     bool hasTrait(const string& trait) {
@@ -67,10 +55,6 @@ private:
 class JsonFileReader {
     string filename;
     vector<Entity> entities;
-
-    void printEntity(const Entity& entity) {
-        cout << "Entity ID: " << entity.id << "\n";
-    }
 
 public:
     JsonFileReader(const string& filename) : filename(filename) {}
@@ -111,11 +95,54 @@ public:
     }
 
     void classifyEntities() {
-        cout << "\nClassified Entities with IDs:\n";
+        vector<Entity> starWars, marvel, hitchhikers, lordOfTheRings;
+
         for (auto& entity : entities) {
-            entity.classify();
+            string classification = entity.classify();
+            if (classification == "Wookie" || classification == "Ewok") {
+                starWars.push_back(entity);
+            } else if (classification == "Asgardian") {
+                marvel.push_back(entity);
+            } else if (classification == "Betelgeusian" || classification == "Vogon") {
+                hitchhikers.push_back(entity);
+            } else if (classification == "Elf" || classification == "Dwarf") {
+                lordOfTheRings.push_back(entity);
+            }
         }
+
+        writeToFile("star_wars.json", starWars);
+        writeToFile("marvel.json", marvel);
+        writeToFile("hitchhikers.json", hitchhikers);
+        writeToFile("lord_of_the_rings.json", lordOfTheRings);
     }
+
+    void writeToFile(const string& universe, const vector<Entity>& entities) {
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        
+        writer.StartObject();
+        writer.Key("name");
+        writer.String(universe.c_str()); 
+        writer.Key("individuals");
+        writer.StartArray();
+        for (const auto& entity : entities) {
+            writer.StartObject();
+            writer.Key("id");
+            writer.Int(entity.id);
+            writer.Key("isHumanoid");
+            writer.Bool(entity.isHumanoid);
+            writer.Key("age");
+            writer.Int(entity.age);
+            writer.EndObject();
+        }
+        writer.EndArray();
+        writer.EndObject();
+
+        ofstream ofs(universe);
+        ofs << buffer.GetString();
+        ofs.close();
+    }
+
 };
 
 int main() {
@@ -123,6 +150,6 @@ int main() {
     reader.readAndMap();
 
     reader.classifyEntities();
-
+    
     return 0;
 }
