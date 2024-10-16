@@ -23,7 +23,7 @@ public:
 
     string classify() {
         if (!isHumanoid) {
-            if (planet == "Kashyyyk" && age <= 400 && hasTrait("HAIRY") && hasTrait("TALL")) {
+            if (planet == "Kashyyk" && age <= 400 && hasTrait("HAIRY") && hasTrait("TALL")) {
                 return "Wookie";
             } else if (planet == "Endor" && age <= 60 && hasTrait("SHORT") && hasTrait("HAIRY")) {
                 return "Ewok";
